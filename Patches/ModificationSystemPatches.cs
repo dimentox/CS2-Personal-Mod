@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 using Game.Plugins;
@@ -128,6 +129,7 @@ public class PluginManagerTest : MonoBehaviour
     {
 
         public List<Game.Modding.IMod> Mods = new List<IMod>();
+        public List<PluginInfo> Plugins = new List<PluginInfo>();
         // Token: 0x0600000F RID: 15 RVA: 0x000020D4 File Offset: 0x000002D4
         public void Start()
         {
@@ -141,13 +143,8 @@ public class PluginManagerTest : MonoBehaviour
             MyPluginManager pm = new MyPluginManager(Directory.CreateDirectory(Path.Combine(Application.persistentDataPath, "Mods")).FullName,typeof(Game.Modding.IMod));
             pm.PluginLoaded += (PluginInfo info) =>
             {
-               
-                var type = info.assembly.GetType("IMod");
-                var runnable = Activator.CreateInstance(type) as Game.Modding.IMod;
-                if (runnable == null) throw new Exception("broke");
-                runnable.OnLoad();
-                Debug.LogWarning(("*****LOADED PLUGIN {0}*****", info.assemblyPath.ToString()));
-                Mods.Add(runnable);
+               Plugins.Add(info);
+               Debug.LogWarning("******Added mod*****");
 
             };
             pm.OnDispose += () =>
@@ -172,7 +169,22 @@ public class PluginManagerTest : MonoBehaviour
                 Debug.LogError(e.Message);
             }
         }
+
+        private IMod LoadMod(PluginInfo info)
+        {
+            Debug.LogWarning("******LoadMod*****");
+            var type = info.assembly.GetType("IMod");
         
+           
+            var mod =  Activator.CreateInstance(type) as Game.Modding.IMod;
+            if (mod != null)
+            {
+                Debug.LogWarning(("*****LOADED MOD {0}*****", info.assemblyPath.ToString()));
+                mod.OnLoad();
+               
+            }
+            return mod;
+        }
         private void OnGameLoadingComplete(Colossal.Serialization.Entities.Purpose purpose, GameMode mode)
         {
          
@@ -186,7 +198,13 @@ public class PluginManagerTest : MonoBehaviour
                     break;
                 case GameMode.Game:
                     Debug.LogWarning("******OnGameLoadingComplete IN GAME*****");
-                    
+                    var us = World.All[0].GetExistingSystemManaged<UpdateSystem>();
+                    foreach (var info in Plugins)
+                    {
+                      
+                        var mod = LoadMod(info);
+                        mod.OnCreateWorld(us);
+                    }
                     break;
             }
             switch (purpose)
