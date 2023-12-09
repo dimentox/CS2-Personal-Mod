@@ -8,7 +8,6 @@ using Game;
 using Game.Modding;
 using Game.SceneFlow;
 using HarmonyLib;
-using MyFirstPlugin;
 using Unity.Entities;
 using UnityEngine;
 
@@ -18,10 +17,11 @@ namespace TargetMethodsDemo.Patches;
 [HarmonyPatch(typeof(GameManager), "CreateSystems")]
 public class GameManager_CreateSystems_Patch
 {
+    public static Wrapper wrapper;
     public static void Postfix(GameManager __instance)
     {
-        Plugin.Wrapper = new Wrapper();
-        Plugin.Wrapper.Start();
+        wrapper = new Wrapper();
+        wrapper.Start();
     }
 }
 
