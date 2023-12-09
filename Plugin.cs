@@ -3,9 +3,7 @@ using BepInEx;
 using HarmonyLib;
 using System.Reflection;
 using TargetMethodsDemo;
-using BepInEx;
-using BepInEx.Unity.Mono;
-
+using TargetMethodsDemo.Patches;
 
 namespace MyFirstPlugin;
 
@@ -19,6 +17,6 @@ public class Plugin : BaseUnityPlugin
         var patchedMethods = harmony.GetPatchedMethods().ToArray();
         // Plugin startup logic
         Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
-
+     
     }
 }
