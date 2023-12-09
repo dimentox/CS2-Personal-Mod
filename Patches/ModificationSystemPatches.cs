@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 using Game.Plugins;
@@ -83,10 +82,11 @@ namespace TargetMethodsDemo.Patches
     public class GameManager_CreateSystems_Patch
     {
         public static PluginManagerTest managerTest = new PluginManagerTest();
+
         public static void Postfix(GameManager __instance)
         {
             Debug.LogWarning("*****LOADED MANAGER *****");
-            
+
             managerTest.Start();
         }
     }
@@ -118,109 +118,98 @@ namespace TargetMethodsDemo.Patches
             this.PluginLoaded = null;
             this.PluginUnloaded = null;
         }
+
         protected override void OnPluginUnloaded(PluginInfo info)
         {
             base.OnPluginUnloaded(info);
             this.PluginUnloaded?.Invoke(info);
         }
     }
-
-public class PluginManagerTest : MonoBehaviour
-    {
-
-        public List<Game.Modding.IMod> Mods = new List<IMod>();
-        public List<PluginInfo> Plugins = new List<PluginInfo>();
-        // Token: 0x0600000F RID: 15 RVA: 0x000020D4 File Offset: 0x000002D4
-        public void Start()
-        {
-        
-
-
-            GameManager.instance.onGameLoadingComplete += this.OnGameLoadingComplete;
-            
-            Debug.LogWarning("******START*****");
-
-            MyPluginManager pm = new MyPluginManager(Directory.CreateDirectory(Path.Combine(Application.persistentDataPath, "Mods")).FullName,typeof(Game.Modding.IMod));
-            pm.PluginLoaded += (PluginInfo info) =>
-            {
-               Plugins.Add(info);
-               Debug.LogWarning("******Added mod*****");
-
-            };
-            pm.OnDispose += () =>
-            {
-                foreach (var mod in Mods)
-                {
-                    mod.OnDispose();
-                }
-            };
-            //ImporterPluginManager importerPluginManager = new ImporterPluginManager(Directory.CreateDirectory(Path.Combine(Application.persistentDataPath, "Mods")).FullName);
-           
-            //C:\Program Files(x86)\Steam\steamapps\common\Cities Skylines II\Cities2_Data\Plugins\x86_64
-            try
-            {
-                pm.StartWatching();
-                
-
-                
-            }
-            catch (Exception e)
-            {
-                Debug.LogError(e.Message);
-            }
-        }
-
-        private IMod LoadMod(PluginInfo info)
-        {
-            Debug.LogWarning("******LoadMod*****");
-            var type = info.assembly.GetType("IMod");
-        
-           
-            var mod =  Activator.CreateInstance(type) as Game.Modding.IMod;
-            if (mod != null)
-            {
-                Debug.LogWarning(("*****LOADED MOD {0}*****", info.assemblyPath.ToString()));
-                mod.OnLoad();
-               
-            }
-            return mod;
-        }
-        private void OnGameLoadingComplete(Colossal.Serialization.Entities.Purpose purpose, GameMode mode)
-        {
-         
-           
-            switch (mode)
-            {
-                case GameMode.MainMenu:
-                    Debug.LogWarning("******OnGameLoadingComplete MainMenu*****");
-                    
-                   
-                    break;
-                case GameMode.Game:
-                    Debug.LogWarning("******OnGameLoadingComplete IN GAME*****");
-                    var us = World.All[0].GetExistingSystemManaged<UpdateSystem>();
-                    foreach (var info in Plugins)
-                    {
-                      
-                        var mod = LoadMod(info);
-                        mod.OnCreateWorld(us);
-                    }
-                    break;
-            }
-            switch (purpose)
-            {
-                case Colossal.Serialization.Entities.Purpose.LoadGame:
-                    Debug.LogWarning("******OnGameLoadingComplete Load Game*****");
-                    break;
-                case Colossal.Serialization.Entities.Purpose.NewMap:
-                    Debug.LogWarning("******OnGameLoadingComplete NewMap*****");
-                    break;
-                case Colossal.Serialization.Entities.Purpose.LoadMap:
-                    Debug.LogWarning("******OnGameLoadingComplete LoadMap*****");
-                    break;
-            }
-        }
-
-
-    }
 }
+//public class PluginManagerTest : MonoBehaviour
+//    {
+
+//        public List<Game.Modding.IMod> Mods = new List<IMod>();
+//        // Token: 0x0600000F RID: 15 RVA: 0x000020D4 File Offset: 0x000002D4
+//        public void Start()
+//        {
+//            this.World = World.DefaultGameObjectInjectionWorld;
+
+
+//            GameManager.instance.onGameLoadingComplete += this.OnGameLoadingComplete;
+            
+//            Debug.LogWarning("******START*****");
+
+//            MyPluginManager pm = new MyPluginManager();
+//            pm.PluginLoaded += (PluginInfo info) =>
+//            {
+               
+//                var type = info.assembly.GetType("IMod");
+//                var runnable = Activator.CreateInstance(type) as Game.Modding.IMod;
+//                if (runnable == null) throw new Exception("broke");
+//                runnable.OnLoad();
+//                Debug.LogWarning(("*****LOADED PLUGIN {0}*****", info.assemblyPath.ToString()));
+//                Mods.Add(runnable);
+
+//            };
+//            pm.OnDispose += () =>
+//            {
+//                foreach (var mod in Mods)
+//                {
+//                    mod.OnDispose();
+//                }
+//            };
+//            //ImporterPluginManager importerPluginManager = new ImporterPluginManager(Directory.CreateDirectory(Path.Combine(Application.persistentDataPath, "Mods")).FullName);
+           
+//            //C:\Program Files(x86)\Steam\steamapps\common\Cities Skylines II\Cities2_Data\Plugins\x86_64
+//            try
+//            {
+//                pm.StartWatching();
+                
+
+                
+//            }
+//            catch (Exception e)
+//            {
+//                Debug.LogError(e.Message);
+//            }
+//        }
+        
+//        private void OnGameLoadingComplete(Colossal.Serialization.Entities.Purpose purpose, GameMode mode)
+//        {
+//            if (this.World != World.All[0])
+//            {
+//                this.World = World.All[0];
+
+//            }
+           
+//            switch (mode)
+//            {
+//                case GameMode.MainMenu:
+//                    Debug.LogWarning("******OnGameLoadingComplete MainMenu*****");
+                    
+//                    Mods.ForEach(x => x.OnCreateWorld(World.GetOrCreateSystemManaged<UpdateSystem>()));
+//                    break;
+//                case GameMode.Game:
+//                    Debug.LogWarning("******OnGameLoadingComplete IN GAME*****");
+                    
+//                    break;
+//            }
+//            switch (purpose)
+//            {
+//                case Colossal.Serialization.Entities.Purpose.LoadGame:
+//                    Debug.LogWarning("******OnGameLoadingComplete Load Game*****");
+//                    break;
+//                case Colossal.Serialization.Entities.Purpose.NewMap:
+//                    Debug.LogWarning("******OnGameLoadingComplete NewMap*****");
+//                    break;
+//                case Colossal.Serialization.Entities.Purpose.LoadMap:
+//                    Debug.LogWarning("******OnGameLoadingComplete LoadMap*****");
+//                    break;
+//            }
+//        }
+
+//        public World World { get; private set; }
+//        public UpdateSystem UpdateSystem { get; private set; }
+//    }
+//}
